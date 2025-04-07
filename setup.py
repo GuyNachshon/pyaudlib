@@ -33,6 +33,9 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
     ],
     keywords=['SPEECH', 'AUDIO', 'SIGNAL', 'SOUND', 'DEEP LEARNING', 'NEURAL NETWORKS'],
     license='MIT',
@@ -55,8 +58,8 @@ setup(
             'codecov >= 2.0.15',
         ],
         'nn': [
-            'torch >= 1.2.0',
-            'torchvision >= 0.4.0',
+            'torch >= 2.0.0',
+            'torchvision >= 0.15.0',
         ],
         'display': [
             'matplotlib >= 3.1.1',

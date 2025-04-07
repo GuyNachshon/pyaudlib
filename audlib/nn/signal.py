@@ -7,8 +7,9 @@ def firfreqz(h, ndft, squared=False):
     """Compute frequency response of an FIR filter."""
     assert ndft > h.size(-1), "Incompatible DFT size!"
     h = F.pad(h, (0, ndft-h.size(-1)))
-    hspec = torch.rfft(h, 1)
-    hspec = hspec[..., 0]**2 + hspec[..., 1]**2
+    # Update to PyTorch 2.0 FFT functions
+    hspec = torch.fft.rfft(h, dim=-1)
+    hspec = hspec.abs().pow(2)
     if squared:
         return hspec
     return hspec**.5
@@ -18,8 +19,9 @@ def iirfreqz(h, ndft, squared=False, powerfloor=10**-3):
     """Compute frequency response of an IIR filter."""
     assert ndft > h.size(-1), "Incompatible DFT size!"
     h = F.pad(h, (0, ndft-h.size(-1)))
-    hspec = torch.rfft(h, 1)
-    hspec = (hspec[..., 0]**2 + hspec[..., 1]**2).clamp(min=powerfloor)
+    # Update to PyTorch 2.0 FFT functions
+    hspec = torch.fft.rfft(h, dim=-1)
+    hspec = hspec.abs().pow(2).clamp(min=powerfloor)
     if squared:
         return 1 / hspec
     return 1 / (hspec**.5)
@@ -32,7 +34,6 @@ def freqz(b, a, ndft, gain=1, iirfloor=10**-3, squared=False):
     if squared:
         return hhnum * hhden * gain**2
     return hhnum*hhden * gain
-
 
 
 def hilbert(x, ndft=None):
@@ -50,7 +51,7 @@ def hilbert(x, ndft=None):
     Returns
     -------
     out: torch.Tensor
-        out.shape == (*x.shape, 2)
+        Complex tensor containing the analytic signal
 
     """
     if ndft is None:
@@ -58,14 +59,18 @@ def hilbert(x, ndft=None):
     else:
         assert ndft > x.size(-1)
         sig = F.pad(x, (0, ndft-x.size(-1)))
-    xspec = torch.rfft(sig, 1, onesided=False)
-    siglen = sig.size(-1)
-    h = torch.zeros(siglen, 2, dtype=sig.dtype, device=sig.device)
-    if siglen % 2 == 0:
-        h[0] = h[siglen//2] = 1
-        h[1:siglen//2] = 2
+    
+    # Update to PyTorch 2.0 FFT functions
+    N = sig.size(-1)
+    X = torch.fft.fft(sig, dim=-1)
+    
+    h = torch.ones(N, device=sig.device)
+    if N % 2 == 0:
+        h[1:N//2] = 2
+        h[N//2] = 1
+        h[N//2+1:] = 0
     else:
-        h[0] = 1
-        h[1:(siglen+1)//2] = 2
-
-    return torch.ifft(xspec * h, 1)
+        h[1:(N+1)//2] = 2
+        h[(N+1)//2:] = 0
+        
+    return torch.fft.ifft(X * h, dim=-1)

@@ -14,15 +14,16 @@ def test_hilbert():
     sigtc = torch.from_numpy(signp)
     hilbnp = sig.hilbert(signp, ndft)
     hilbtc = hilbert(sigtc, ndft).numpy()
-    assert np.allclose(hilbnp, hilbtc[:, 0]+1j*hilbtc[:, 1])
-    assert np.allclose(signp, hilbtc[:len(signp), 0])
+    # PyTorch 2.0 returns complex tensor directly
+    assert np.allclose(hilbnp, hilbtc)
+    assert np.allclose(signp, hilbtc[:len(signp)].real)
     # Test a batch
     signp = nums
     sigtc = torch.from_numpy(signp)
     hilbnp = sig.hilbert(signp)
     hilbtc = hilbert(sigtc).numpy()
-    assert np.allclose(hilbnp, hilbtc[:, :, 0]+1j*hilbtc[:, :, 1])
-    assert np.allclose(signp, hilbtc[:, :len(signp), 0])
+    assert np.allclose(hilbnp, hilbtc)
+    assert np.allclose(signp, hilbtc[:, :len(signp[0])].real)
 
 
 if __name__ == "__main__":
